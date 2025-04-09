@@ -1611,6 +1611,8 @@ ggplot(data, aes(x = as.factor(waterfront), y = price)) +
   ) +
   theme_minimal()
 ```
+### Boxplot 1: With Outliers
+![BoxPlot1](BoxPlot1.png)
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
@@ -1695,6 +1697,8 @@ ggplot(filtered_data, aes(x = as.factor(waterfront), y = price)) +
   ) +
   theme_minimal()
 ```
+### Boxplot 2: Without Outliers
+![BoxPlot2](BoxPlot2.png)
 
 ![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
