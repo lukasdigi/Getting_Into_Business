@@ -2,7 +2,10 @@
 title: "README"
 author: "Lukas DiGiovanni"
 date: "2025-02-26"
-output: html_document
+output:
+ github_document:
+ pandoc_args: ["--wrap=none"]
+always_allow_html: true
 ---
 
 ## Uploading the Dataset
@@ -95,59 +98,15 @@ kable(data_dictionary, caption = "Variable Descriptions", col.names = c("Variabl
 
 ## Summary of Statistics
 
-This code creates a summary of the variables, including count, mean, standard deviation, min, Q1, Median, Q3, and max.
+This table summarizes each variables data.
 
 ```{r}
-
 # Load necessary libraries
-library(dplyr)
-library(readr)
-library(gt)
-library(tidyr)  # Needed for pivoting data
-
-# Select numeric columns
-numeric_data <- data %>%
-  select(where(is.numeric))
-
-# Generate summary statistics using reframe() to avoid errors
-numeric_summary <- numeric_data %>%
-  reframe(
-    Variable = names(.),
-    Count = sapply(., function(x) sum(!is.na(x))),
-    Mean = sapply(., mean, na.rm = TRUE),
-    SD = sapply(., sd, na.rm = TRUE),
-    Min = sapply(., min, na.rm = TRUE),
-    Q1 = sapply(., quantile, 0.25, na.rm = TRUE),
-    Median = sapply(., median, na.rm = TRUE),
-    Q3 = sapply(., quantile, 0.75, na.rm = TRUE),
-    Max = sapply(., max, na.rm = TRUE)
-  )
-
-# Create a nicely formatted table with gt
-numeric_summary %>%
-  gt() %>%
-  tab_header(title = "Summary Statistics - Numeric Variables") %>%
-  fmt_number(columns = -1, decimals = 2) %>%
-  tab_options(
-    table.border.top.color = "black",
-    table.border.bottom.color = "black",
-    row.striping.include_table_body = TRUE
-  )
-
-
-```
-
-# Updated Summary Statistics
-
-This code updates the summary statistics with the mode and any missing data.
-
-```{r}
-# Load necessary libraries (some already loaded earlier, added here for completeness)
 library(dplyr)
 library(readr)
 library(kableExtra)
 
-# Function to calculate mode
+# Mode function
 calculate_mode <- function(x) {
   unique_x <- na.omit(x)
   if (length(unique_x) == 0) return(NA)
@@ -158,16 +117,14 @@ calculate_mode <- function(x) {
 # Use the existing 'data' dataframe loaded from "USA Housing Dataset.csv"
 df <- data
 
-# Select numeric columns
+# ----------------------------------------
+# Remove specific variables from numeric summary
+# ----------------------------------------
 numeric_df <- df %>%
-  select(where(is.numeric))
+  select(where(is.numeric)) %>%
+  select(-any_of(c("waterfront", "view", "condition")))
 
-# Select nominal (categorical) columns
-# Note: Assuming 'street', 'city', 'statezip', 'country' are character columns as per dataset description
-nominal_df <- df %>%
-  select(where(is.character))
-
-# Generate summary statistics for numeric variables
+# Summary for numeric variables (excluding view, condition, waterfront)
 numeric_summary <- numeric_df %>%
   reframe(
     Variable = names(.),
@@ -182,26 +139,61 @@ numeric_summary <- numeric_df %>%
     Max = sapply(., max, na.rm = TRUE)
   )
 
-# Generate summary statistics for nominal variables
-nominal_summary <- nominal_df %>%
+# ----------------------------------------
+# Binary Summary for 'waterfront'
+# ----------------------------------------
+binary_summary <- df %>%
+  select(waterfront) %>%
+  reframe(
+    Variable = "waterfront",
+    Count = sum(!is.na(waterfront)),
+    Missing = sum(is.na(waterfront)),
+    Mode = calculate_mode(waterfront)
+  )
+
+# ----------------------------------------
+# Interval-like Summary for 'condition' and 'view'
+# (no mean/SD, just quantiles)
+# ----------------------------------------
+interval_df <- df %>% select(condition, view)
+
+interval_summary <- interval_df %>%
   reframe(
     Variable = names(.),
     Count = sapply(., function(x) sum(!is.na(x))),
     Missing = sapply(., function(x) sum(is.na(x))),
-    Mode = sapply(., calculate_mode)
+    Min = sapply(., min, na.rm = TRUE),
+    Q1 = sapply(., quantile, 0.25, na.rm = TRUE),
+    Median = sapply(., median, na.rm = TRUE),
+    Q3 = sapply(., quantile, 0.75, na.rm = TRUE),
+    Max = sapply(., max, na.rm = TRUE)
   )
 
-# Create formatted tables with kableExtra
+# ----------------------------------------
+# Render all tables
+# ----------------------------------------
+
+# Numeric
 numeric_summary %>%
   kable(format = "html", digits = 2, caption = "Summary Statistics - Numeric Variables") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
   column_spec(1, bold = TRUE)
 
-nominal_summary %>%
-  kable(format = "html", caption = "Summary Statistics - Nominal Variables") %>%
+# Binary
+binary_summary %>%
+  kable(format = "html", caption = "Summary Statistics - Binary Variable: Waterfront") %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
   column_spec(1, bold = TRUE)
+
+# Interval-like
+interval_summary %>%
+  kable(format = "html", digits = 2, caption = "Summary Statistics - Ordinal/Interval Variables: Condition and View") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+  column_spec(1, bold = TRUE)
+
+
 ```
+
 
 ## Boxplot Comparing Waterfront & Non-Waterfront
 
