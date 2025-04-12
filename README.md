@@ -1014,6 +1014,10 @@ ggplot(data, aes(x = as.factor(waterfront), y = price)) +
   ) +
   theme_minimal()
 ```
+![BoxPlot1](BoxPlot1.png)
+
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
 
 ![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
@@ -1098,6 +1102,9 @@ ggplot(filtered_data, aes(x = as.factor(waterfront), y = price)) +
   ) +
   theme_minimal()
 ```
+![BoxPlot2](BoxPlot2.png)
+
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
